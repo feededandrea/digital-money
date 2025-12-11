@@ -1,0 +1,105 @@
+// prisma/schema.prisma
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Asegúrate de que DATABASE_URL esté configurado en tu archivo .env
+}
+
+model Usuario {
+  id             Int        @id @default(autoincrement())
+  nombre         String     @db.VarChar(100)
+  email          String     @db.VarChar(100)
+  contrasena     String     @db.VarChar(255)
+  telefono       String     @db.VarChar(50)
+  cuit           String     @db.VarChar(50)
+  fecha_creacion DateTime   @default(now())
+
+  // Relaciones
+  actividades              Actividad[] @relation(name: "Usuario")
+  transferenciasRealizadas Actividad[] @relation(name: "UsuarioTransferencia")
+  tarjetas                 Tarjeta[]
+
+  @@map("usuarios")
+}
+
+enum TipoActividad {
+  TARJETA
+  TRANSFERENCIA
+  PAGO_SERVICIO
+  PAGO_USUARIO
+  PAGO_EXTERNO
+}
+
+model Actividad {
+  id          Int      @id @default(autoincrement())
+  descripcion String   @db.VarChar(255)  
+  importe     Float    
+  fecha       DateTime @default(now())  
+
+  // Relación con Usuario 
+  usuarioId   Int?     
+  usuario     Usuario? @relation(name: "Usuario", fields: [usuarioId], references: [id])
+
+  tipoActividad String  @db.VarChar(30)  
+  // Relación con Usuario 
+  usuarioTransferenciaId Int?     
+  usuarioTransferencia Usuario? @relation(name: "UsuarioTransferencia", fields: [usuarioTransferenciaId], references: [id])
+
+  tarjetaActividad          TarjetaActividad?
+  transferenciaActividad    TransferenciaActividad?
+  pagoServicioActividad     PagoServicioActividad?
+  pagoExternoActividad      PagoExternoActividad?
+
+  @@map("actividades") 
+}
+
+model TarjetaActividad {
+  id           Int       @id @default(autoincrement())
+  actividad    Actividad @relation(fields: [actividadId], references: [id])
+  actividadId  Int       @unique
+  tarjetaId    Int       // o los datos necesarios de la tarjeta
+}
+
+model TransferenciaActividad {
+  id           Int       @id @default(autoincrement())
+  actividad    Actividad @relation(fields: [actividadId], references: [id])
+  actividadId  Int       @unique
+  cvuDestino   String    @db.VarChar(50)
+  banco        String?
+}
+
+model PagoServicioActividad {
+  id           Int       @id @default(autoincrement())
+  actividad    Actividad @relation(fields: [actividadId], references: [id])
+  actividadId  Int       @unique
+  servicioId   Int
+  nombreServicio String  @db.VarChar(100)
+}
+
+model PagoExternoActividad {
+  id           Int       @id @default(autoincrement())
+  actividad    Actividad @relation(fields: [actividadId], references: [id])
+  actividadId  Int       @unique
+  cvuDestino   String
+  alias        String?
+}
+
+model Tarjeta {
+  id          Int      @id @default(autoincrement())
+  numero      String   @db.VarChar(16)  // Número de tarjeta (sin formato)
+  titular     String   @db.VarChar(100) // Nombre del titular
+  vencimiento DateTime @db.Date         // Fecha de vencimiento
+  cvv         String   @db.VarChar(3)   // Código CVV
+  fecha_creacion DateTime @default(now()) 
+  saldoDisponible Decimal  @default(100000.00) @db.Decimal(10,2)
+
+  usuarioId   Int?     
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("tarjetas")
+}
