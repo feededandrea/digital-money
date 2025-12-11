@@ -1,4 +1,13 @@
+Digital Money por Digital House
+
+<img width="1297" height="968" alt="screeen 1" src="https://github.com/user-attachments/assets/a6a2135c-e9c6-461f-99da-2e149ef27c01" />
+
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+
 
 ## Getting Started
 
